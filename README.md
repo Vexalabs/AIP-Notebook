@@ -1,2 +1,2 @@
 # AIP-Notebook
-Custom notebook for our model builders to leverage 
+Custom notebook for Soccer Predictions
