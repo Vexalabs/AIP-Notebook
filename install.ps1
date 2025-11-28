@@ -86,8 +86,8 @@ Write-Host "   (^-^)" -ForegroundColor Green
 Write-Info "[2/6] Setting up Linux environment..."
 # Determine default user
 $wslUser = wsl -d Ubuntu whoami
-$wslDest = "/home/$wslUser/MLModelBuilder"
-if ($wslUser -eq "root") { $wslDest = "/root/MLModelBuilder" }
+$wslDest = "/home/$wslUser/AIP-Model-Builder"
+if ($wslUser -eq "root") { $wslDest = "/root/AIP-Model-Builder" }
 
 Write-Info "Installing to: $wslDest"
 
@@ -102,8 +102,8 @@ $stagingDir = Join-Path $env:TEMP "mlbuilder_staging"
 if (Test-Path $stagingDir) { Remove-Item $stagingDir -Recurse -Force }
 New-Item -ItemType Directory -Path $stagingDir | Out-Null
 
-# Source is now in MLModelBuilder subdirectory
-$sourceDir = Join-Path $PSScriptRoot "MLModelBuilder"
+# Source is now in AIP-Model-Builder subdirectory
+$sourceDir = Join-Path $PSScriptRoot "AIP-Model-Builder"
 if (-not (Test-Path $sourceDir)) {
     # Fallback for development/testing where files are in current directory
     $sourceDir = $PSScriptRoot
@@ -183,6 +183,12 @@ echo 'Setup Complete!'
 # Replace placeholders
 $setupScript = $setupScriptContent.Replace('WSLDESTTOREPLACE', $wslDest)
 $setupScript = $setupScript.Replace('WSLUSERTOREPLACE', $wslUser)
+
+# 5. Create Desktop Shortcut
+Write-Info "[5/6] Creating desktop shortcut..."
+$desktopPath = [Environment]::GetFolderPath("Desktop")
+$batPath = Join-Path $desktopPath "AIP-Notebook.bat"
+$oldShortcut = Join-Path $desktopPath "ML Model Builder.lnk"
 $oldBat = Join-Path $desktopPath "ML Model Builder.bat"
 
 if (Test-Path $oldShortcut) { Remove-Item $oldShortcut -Force }
@@ -294,3 +300,5 @@ Write-Success "Double-click 'AIP-Notebook.bat' on your Desktop to start!"
 Write-Host ""
 
 Read-Host "Press Enter to exit"
+
+

@@ -10,7 +10,7 @@ echo ""
 DIST_DIR="./dist"
 PACKAGE_NAME="AIP-Model-Builder-Installer"
 PACKAGE_DIR="$DIST_DIR/$PACKAGE_NAME"
-APP_DIR="$PACKAGE_DIR/MLModelBuilder"
+APP_DIR="$PACKAGE_DIR/AIP-Model-Builder"
 
 echo "Creating package directory..."
 rm -rf "$DIST_DIR"
@@ -59,9 +59,9 @@ cat > "$PACKAGE_DIR/INSTALL_INSTRUCTIONS.txt" << 'EOF'
 ## Mac Users 🍎
 
 1. Open Terminal
-2. Navigate to the MLModelBuilder folder
+2. Navigate to the AIP-Model-Builder folder
 3. Run: `bash install_mac.sh`
-4. Launch "ML Model Builder.command" from your desktop
+4. Launch "AIP Model Builder.command" from your desktop
 
 ## First Launch
 
@@ -77,43 +77,78 @@ When you first launch the application:
 
 ## Need Help?
 
-See MLModelBuilder/USER_MANUAL.md for complete documentation.
+Windows Installation:
+1. Extract this archive
+2. Navigate to the AIP-Model-Builder folder
+3. Right-click install.ps1 and select "Run with PowerShell"
+   OR run Install_Windows.bat as Administrator
+
+Mac/Linux Installation:
+1. Extract this archive
+2. Open Terminal in the extracted folder
+3. Run: bash Install_Mac.sh
+
+What Gets Installed:
+- FastAPI Backend (Python)
+- React Frontend (Node.js)
+- Jupyter Notebook Environment
+- Sample ML Models (Crypto, Soccer)
+
+See AIP-Model-Builder/USER_MANUAL.md for complete documentation.
 EOF
 
-# Create Windows installer at ROOT level
+# Create Windows installer wrapper at ROOT level
 echo "Creating Install_Windows.bat..."
-cat > "$PACKAGE_DIR/Install_Windows.bat" << 'EOF'
+cat > "$PACKAGE_DIR/Install_Windows.bat" <<'EOF'
 @echo off
 color 0A
-echo ========================================
-echo   AIP Model Builder - Installer
-echo ========================================
+cls
 echo.
-echo This will install AIP Model Builder on your system.
+echo   ################################################################
+echo   ##                                                            ##
+echo   ##              AIP Notebook - Installation                  ##
+echo   ##              Empowering AI Innovation                      ##
+echo   ##                                                            ##
+echo   ################################################################
 echo.
-echo Required: Administrator privileges
+echo   Starting installation...
 echo.
 
-REM Handle UNC paths by creating a temporary drive mapping
-pushd "%~dp0"
+REM Get the directory where this batch file is located
+set "SCRIPT_DIR=%~dp0"
 
-PowerShell -ExecutionPolicy Bypass -File "MLModelBuilder\\install.ps1"
+REM Run the PowerShell installer from the AIP-Model-Builder subdirectory
+PowerShell -ExecutionPolicy Bypass -File "%SCRIPT_DIR%AIP-Model-Builder\install.ps1"
 
-REM Clean up drive mapping
-popd
-
-color
 pause
 EOF
 
-# Copy Mac installer to ROOT level
+# Create Mac installer wrapper at ROOT level
 echo "Creating Install_Mac.sh..."
-if [ -f "install_mac.sh" ]; then
-    cp install_mac.sh "$PACKAGE_DIR/Install_Mac.sh"
-    chmod +x "$PACKAGE_DIR/Install_Mac.sh"
-fi
+cat > "$PACKAGE_DIR/Install_Mac.sh" <<'EOF'
+#!/bin/bash
 
-# Create archive (tar.gz which Windows can extract)
+echo "========================================="
+echo "  AIP Notebook - Installation"
+echo "  Empowering AI Innovation"
+echo "========================================="
+echo ""
+echo "Starting installation..."
+echo ""
+
+# Navigate to app directory and run installer
+cd "$(dirname "$0")/AIP-Model-Builder"
+bash install_mac.sh
+
+echo ""
+echo "Installation complete!"
+echo ""
+read -p "Press Enter to exit..."
+EOF
+
+chmod +x "$PACKAGE_DIR/Install_Mac.sh"
+
+# Create the archive
 echo ""
 echo "Creating archive..."
 cd "$DIST_DIR"
@@ -141,11 +176,11 @@ echo ""
 echo "Package size: $SIZE"
 echo ""
 echo "Package structure:"
-echo "  AIP-Model-Builder-Installer/"
+echo "  ${PACKAGE_NAME}/"
 echo "    ├── Install_Windows.bat         (Windows: Run this!)"
 echo "    ├── Install_Mac.sh              (Mac: Run this!)"
 echo "    ├── INSTALL_INSTRUCTIONS.txt"
-echo "    └── MLModelBuilder/             (Application files)"
+echo "    └── AIP-Model-Builder/             (Application files)"
 echo ""
 echo "To test the installer:"
 echo "  Windows:"
