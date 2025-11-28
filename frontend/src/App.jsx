@@ -4,6 +4,8 @@ import { Play, Square, Upload, ExternalLink, BrainCircuit, Terminal, Clock } fro
 import SetupWizard from './components/SetupWizard'
 import ModelSelectionModal from './components/ModelSelectionModal'
 
+
+
 function App() {
     const [status, setStatus] = useState('stopped')
     const [jupyterUrl, setJupyterUrl] = useState(null)
@@ -228,6 +230,21 @@ function App() {
                     </div>
                     <div className="px-4 py-2 rounded-md bg-panel-dark border border-border-dark text-light-grey text-body-small font-mono">
                         v1.1.0
+        <div className="min-h-screen bg-background-dark text-text-dark p-8 font-sans">
+
+            <div className="max-w-6xl mx-auto">
+                <header className="mb-12 border-b border-white/20 pb-6">
+
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-h4 tracking-[-1px] font-bold text-white">
+                                AI Predictions
+                            </h1>
+                            <p className="text-body-large text-white/80 mt-1">Model Builder Workspace</p>
+                        </div>
+                        <div className="px-4 py-2 rounded-md bg-white/10 backdrop-blur-sm border border-white/20 text-white text-body-small font-mono">
+                            v1.2.0
+                        </div>
                     </div>
                 </header>
 
