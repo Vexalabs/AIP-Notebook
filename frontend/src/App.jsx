@@ -188,9 +188,37 @@ function App() {
         return <SetupWizard onComplete={handleSetupComplete} />
     }
 
+    const Snowflakes = () => {
+        return (
+            <>
+                {[...Array(20)].map((_, i) => (
+                    <div
+                        key={i}
+                        className="snowflake"
+                        style={{
+                            left: `${Math.random() * 100}%`,
+                            animationDuration: `${5 + Math.random() * 10}s`,
+                            animationDelay: `${Math.random() * 5}s`,
+                            fontSize: `${0.5 + Math.random() * 1}em`,
+                        }}
+                    >
+                        ❄
+                    </div>
+                ))}
+            </>
+        );
+    };
+
     return (
-        <div className="min-h-screen bg-background-dark text-text-dark p-8 font-sans">
+        <div className="min-h-screen bg-gradient-to-br from-red-950 via-red-900 to-red-950 text-text-dark p-8 font-sans">
+            <Snowflakes />
             <div className="max-w-6xl mx-auto">
+                <div className="text-center mb-6">
+                    <h2 className="text-3xl font-bold text-white drop-shadow-lg">
+                        🎄 Happy Holidays! 🎅
+                    </h2>
+                    <p className="text-red-100 mt-2">Christmas Edition</p>
+                </div>
                 <header className="mb-12 border-b border-border-dark pb-6 flex items-center justify-between">
                     <div>
                         <h1 className="text-h4 tracking-[-1px] font-bold text-text-dark">
@@ -199,7 +227,7 @@ function App() {
                         <p className="text-body-large text-light-grey mt-1">Model Builder Workspace</p>
                     </div>
                     <div className="px-4 py-2 rounded-md bg-panel-dark border border-border-dark text-light-grey text-body-small font-mono">
-                        v1.0.0
+                        v1.1.0
                     </div>
                 </header>
 

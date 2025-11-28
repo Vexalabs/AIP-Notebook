@@ -5,9 +5,28 @@
 @tailwind utilities;
 
 body {
-  background-color: #020617; /* background-dark */
-  color: #FFFFFF; /* text-dark */
+  background-color: #450A0A;
+  /* background-dark - Red 950 */
+  color: #FFFFFF;
+  /* text-dark */
   font-family: 'Inter', sans-serif;
+}
+
+/* Snowflake Animation */
+.snowflake {
+  position: fixed;
+  top: -10px;
+  color: white;
+  user-select: none;
+  z-index: 1000;
+  pointer-events: none;
+  animation: fall linear infinite;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh);
+  }
 }
 
 /* Custom Scrollbar */
@@ -16,23 +35,26 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #020617; /* background-dark */
+  background: #450A0A;
+  /* background-dark - Red 950 */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155; /* border-dark */
+  background: #FECACA;
+  /* border-dark - Red 200 */
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569; /* A bit lighter than border-dark */
+  background: #FCA5A5;
+  /* Slightly darker red */
 }
 
 @layer components {
   .btn-primary {
     @apply bg-primary-default text-text-light font-medium py-2 px-4 rounded-lg hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background-dark focus:ring-primary-default;
   }
-  
+
   .btn-secondary {
     @apply bg-panel-dark text-text-dark font-medium py-2 px-4 rounded-lg hover:bg-border-dark transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background-dark focus:ring-light-grey;
   }

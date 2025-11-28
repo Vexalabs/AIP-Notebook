@@ -7,23 +7,23 @@ export default {
   theme: {
     extend: {
       colors: {
-        'primary-default': '#A3E635',
-        'primary-hover': '#84CC16',
+        'primary-default': '#FFFFFF',
+        'primary-hover': '#E5E7EB',
         'success': '#22C55E',
         'warning': '#F97316',
-        'error': '#DC2626',
-        'info': '#2563EB',
-        'background-dark': '#020617',
+        'error': '#EF4444',
+        'info': '#3B82F6',
+        'background-dark': '#450A0A', // Red 950
         'background-light': '#FFFFFF',
-        'text-light': '#334155',
+        'text-light': '#B91C1C', // Red 700
         'text-dark': '#FFFFFF',
-        'light-grey': '#CBD5E1',
-        'icon-blue': '#3B82F6',
-        'icon-green': '#22C55E',
-        'icon-orange': '#F97316',
-        'icon-purple': '#A855F7',
-        'panel-dark': '#0f172a', // Slightly lighter than bg-dark for cards/panels
-        'border-dark': '#334155',
+        'light-grey': '#FECACA', // Red 200
+        'icon-blue': '#FFFFFF',
+        'icon-green': '#FFFFFF',
+        'icon-orange': '#FFFFFF',
+        'icon-purple': '#FFFFFF',
+        'panel-dark': '#7F1D1D', // Red 900
+        'border-dark': '#FECACA', // Red 200
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

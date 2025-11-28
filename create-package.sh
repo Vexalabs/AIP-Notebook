@@ -23,10 +23,14 @@ echo "Copying project files..."
 for dir in backend frontend workspace docs sample_models; do
     if [ -d "$dir" ]; then
         echo "  Copying $dir/..."
-        # Exclude node_modules, venv, __pycache__, .git
-        rsync -a --exclude='node_modules' --exclude='venv' --exclude='__pycache__' \
-              --exclude='.git' --exclude='.ipynb_checkpoints' \
-              "$dir" "$APP_DIR/"
+        # Use cp instead of rsync since rsync might be missing
+        cp -r "$dir" "$APP_DIR/"
+        # Remove excluded directories from destination
+        rm -rf "$APP_DIR/$dir/node_modules"
+        rm -rf "$APP_DIR/$dir/venv"
+        rm -rf "$APP_DIR/$dir/__pycache__"
+        rm -rf "$APP_DIR/$dir/.git"
+        rm -rf "$APP_DIR/$dir/.ipynb_checkpoints"
     fi
 done
 

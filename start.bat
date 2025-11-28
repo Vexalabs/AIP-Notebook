@@ -42,7 +42,7 @@ echo   [*] Starting backend and frontend in WSL...
 echo.
 
 REM Start the services in WSL
-start /B wsl -d Ubuntu bash -c "cd /opt/docker/4C_Predictions/model_builder_env && ./run.sh"
+start /B wsl -d Ubuntu bash -c "cd /opt/docker/4C_Predictions/temp_model_builder_env/AIP-Notebook && ./run.sh"
 
 echo   [*] Initializing services...
 timeout /t 5 /nobreak > nul
