@@ -1,0 +1,26 @@
+{
+  "gcp": {
+    "project_id": "YOUR_GCP_PROJECT_ID",
+    "service_account_key_path": ".secrets/gcp-service-account.json",
+    "bucket_name": "YOUR_BUCKET_NAME",
+    "region": "us-central1"
+  },
+  "api_keys": {
+    "openai_api_key": "YOUR_OPENAI_KEY",
+    "anthropic_api_key": "YOUR_ANTHROPIC_KEY",
+    "google_api_key": "YOUR_GOOGLE_API_KEY"
+  },
+  "database": {
+    "connection_string": "postgresql://user:password@host:port/dbname",
+    "redis_url": "redis://localhost:6379"
+  },
+  "secrets": {
+    "jwt_secret": "YOUR_JWT_SECRET",
+    "encryption_key": "YOUR_ENCRYPTION_KEY"
+  },
+  "github": {
+    "token": "YOUR_GITHUB_TOKEN",
+    "repo_owner": "YOUR_GITHUB_USERNAME",
+    "repo_name": "YOUR_REPO_NAME"
+  }
+}

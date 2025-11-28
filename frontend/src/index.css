@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #020617; /* background-dark */
+  color: #FFFFFF; /* text-dark */
+  font-family: 'Inter', sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #020617; /* background-dark */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155; /* border-dark */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569; /* A bit lighter than border-dark */
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-default text-text-light font-medium py-2 px-4 rounded-lg hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background-dark focus:ring-primary-default;
+  }
+  
+  .btn-secondary {
+    @apply bg-panel-dark text-text-dark font-medium py-2 px-4 rounded-lg hover:bg-border-dark transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background-dark focus:ring-light-grey;
+  }
+
+  .card {
+    @apply bg-panel-dark border border-border-dark rounded-2xl shadow-lg;
+  }
+
+  .input-field {
+    @apply bg-panel-dark border border-border-dark rounded-lg p-3 w-full text-text-dark placeholder-light-grey focus:outline-none focus:ring-2 focus:ring-primary-default focus:border-transparent;
+  }
+}
