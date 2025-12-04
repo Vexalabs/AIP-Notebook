@@ -3,6 +3,7 @@ import axios from 'axios'
 import { Play, Square, Upload, ExternalLink, BrainCircuit, Terminal, Clock } from 'lucide-react'
 import SetupWizard from './components/SetupWizard'
 import ModelSelectionModal from './components/ModelSelectionModal'
+import LoadingOverlay from './components/LoadingOverlay'
 
 function App() {
     const [status, setStatus] = useState('stopped')
@@ -14,9 +15,11 @@ function App() {
     const [setupComplete, setSetupComplete] = useState(null)
     const [checkingSetup, setCheckingSetup] = useState(true)
     const [history, setHistory] = useState([])
+    const [loadingSteps, setLoadingSteps] = useState([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [updateAvailable, setUpdateAvailable] = useState(false)
     const [updateInfo, setUpdateInfo] = useState(null)
+    const [currentVersion, setCurrentVersion] = useState('...')
 
     useEffect(() => {
         checkSetupStatus()
@@ -24,6 +27,7 @@ function App() {
 
     useEffect(() => {
         if (setupComplete) {
+            fetchCurrentVersion()
             checkStatus()
             fetchHistory()
             checkUpdates()
@@ -68,6 +72,16 @@ function App() {
         }
     }
 
+    const fetchCurrentVersion = async () => {
+        try {
+            const res = await axios.get('/api/updates/current-version')
+            setCurrentVersion(res.data.version)
+        } catch (err) {
+            console.error("Failed to fetch version", err)
+            setCurrentVersion('1.0.0')
+        }
+    }
+
     const checkUpdates = async () => {
         try {
             const res = await axios.get('/api/updates/check')
@@ -84,45 +98,175 @@ function App() {
         if (!window.confirm("This will stop the application and install the latest version. Continue?")) return
 
         setLoading(true)
-        setMessage("Downloading and installing update... The application will restart automatically.")
+        setMessage('Installing update...')
+
+        // Initialize update steps
+        const steps = [
+            { label: 'Validating prerequisites...', status: 'processing' },
+            { label: 'Creating backup...', status: 'pending' },
+            { label: 'Downloading update...', status: 'pending' },
+            { label: 'Applying changes...', status: 'pending' },
+            { label: 'Restarting application...', status: 'pending' }
+        ]
+        setLoadingSteps(steps)
 
         try {
+            // Start the update
             await axios.post('/api/updates/perform')
-            // The backend will kill itself, so we just wait or show a message
-            setTimeout(() => {
-                alert("Update started. Please wait a moment and then reload the page.")
-                window.location.reload()
-            }, 10000)
+
+            // Simulate step progression while polling for status
+            let currentStep = 0
+            let pollCount = 0
+            const maxPolls = 60 // 2 minutes max
+
+            const pollInterval = setInterval(async () => {
+                pollCount++
+
+                try {
+                    const status = await axios.get('/api/updates/status')
+
+                    // Update steps based on status message
+                    if (status.data.message.includes('backup')) {
+                        currentStep = Math.max(currentStep, 1)
+                    } else if (status.data.message.includes('download') || status.data.message.includes('Fetching')) {
+                        currentStep = Math.max(currentStep, 2)
+                    } else if (status.data.message.includes('Applying') || status.data.message.includes('update')) {
+                        currentStep = Math.max(currentStep, 3)
+                    } else if (status.data.message.includes('restart')) {
+                        currentStep = Math.max(currentStep, 4)
+                    }
+
+                    // Update step statuses
+                    setLoadingSteps(prev => prev.map((step, idx) => ({
+                        ...step,
+                        status: idx < currentStep ? 'completed' : idx === currentStep ? 'processing' : 'pending'
+                    })))
+
+                    if (status.data.complete || status.data.error) {
+                        clearInterval(pollInterval)
+
+                        if (status.data.error) {
+                            setMessage(`Update failed: ${status.data.error}`)
+                            setLoading(false)
+                            setLoadingSteps([])
+                        } else {
+                            // Mark all as completed
+                            setLoadingSteps(prev => prev.map(step => ({ ...step, status: 'completed' })))
+                            setMessage('Update complete! Reloading...')
+                            setTimeout(() => window.location.reload(), 2000)
+                        }
+                    }
+                } catch (err) {
+                    // Backend might be down during restart, this is expected
+                    // Move to restart step
+                    currentStep = Math.max(currentStep, 4)
+                    setLoadingSteps(prev => prev.map((step, idx) => ({
+                        ...step,
+                        status: idx < currentStep ? 'completed' : idx === currentStep ? 'processing' : 'pending'
+                    })))
+                }
+
+                // Timeout after max polls
+                if (pollCount >= maxPolls) {
+                    clearInterval(pollInterval)
+                    setMessage('Update taking longer than expected. Please reload manually.')
+                    setTimeout(() => {
+                        setLoading(false)
+                        setLoadingSteps([])
+                    }, 5000)
+                }
+            }, 2000)
+
         } catch (err) {
             setMessage("Update failed: " + (err.response?.data?.detail || err.message))
             setLoading(false)
+            setLoadingSteps([])
         }
     }
 
+    // Helper function to ensure all loading steps complete smoothly
+    const completeAllSteps = async (steps) => {
+        return new Promise((resolve) => {
+            const totalSteps = steps.length
+            let currentStep = 0
+
+            const interval = setInterval(() => {
+                currentStep++
+                if (currentStep < totalSteps) {
+                    setLoadingSteps(prev => prev.map((step, idx) => ({
+                        ...step,
+                        status: idx < currentStep ? 'completed' : idx === currentStep ? 'processing' : 'pending'
+                    })))
+                } else {
+                    // Mark all as completed
+                    setLoadingSteps(prev => prev.map(step => ({ ...step, status: 'completed' })))
+                    clearInterval(interval)
+                    setTimeout(resolve, 500) // Brief pause to show all completed
+                }
+            }, 600)
+        })
+    }
+
     const startEnv = async (modelId) => {
+        console.log('startEnv called with modelId:', modelId)
         setIsModalOpen(false)
         setLoading(true)
         setMessage('Starting environment...')
+
+        // Initialize steps
+        const steps = [
+            { label: 'Validating configuration...', status: 'processing' },
+            { label: 'Allocating resources...', status: 'pending' },
+            { label: 'Starting Jupyter kernel...', status: 'pending' },
+            { label: 'Connecting to workspace...', status: 'pending' }
+        ]
+        setLoadingSteps(steps)
+
         try {
-            const res = await axios.post('/api/environment/start', {
-                template_id: 'default', // This might be used in the future
-                model_id: modelId
-            })
+            console.log('Making API request to /api/environment/start')
+
+            // Start the API call and step progression in parallel
+            const [apiResult] = await Promise.all([
+                axios.post('/api/environment/start', {
+                    template_id: 'default',
+                    model_id: modelId
+                }),
+                completeAllSteps(steps)
+            ])
+
+            console.log('API response:', apiResult.data)
             setStatus('running')
-            setJupyterUrl(res.data.url)
+            setJupyterUrl(apiResult.data.url)
             setMessage('Environment started!')
         } catch (err) {
+            console.error('Error starting environment:', err)
             const detail = err.response?.data?.detail || err.message;
             setMessage('Error starting environment: ' + detail);
         } finally {
             setLoading(false)
+            setLoadingSteps([])
         }
     }
 
     const stopEnv = async () => {
         setLoading(true)
+        setMessage('Stopping environment...')
+
+        const steps = [
+            { label: 'Stopping Jupyter kernel...', status: 'processing' },
+            { label: 'Saving workspace state...', status: 'pending' },
+            { label: 'Releasing resources...', status: 'pending' },
+            { label: 'Disconnecting...', status: 'pending' }
+        ]
+        setLoadingSteps(steps)
+
         try {
-            await axios.post('/api/environment/stop')
+            // Start the API call and step progression in parallel
+            await Promise.all([
+                axios.post('/api/environment/stop'),
+                completeAllSteps(steps)
+            ])
+
             setStatus('stopped')
             setJupyterUrl(null)
             setMessage('Environment stopped.')
@@ -130,6 +274,7 @@ function App() {
             setMessage('Error stopping environment: ' + err.message)
         } finally {
             setLoading(false)
+            setLoadingSteps([])
         }
     }
 
@@ -157,11 +302,26 @@ function App() {
         e.preventDefault()
         setLoading(true)
         setMessage('Submitting model to AIP...')
+
+        // Initialize submission steps
+        const steps = [
+            { label: 'Preparing workspace...', status: 'processing' },
+            { label: 'Creating Git commit...', status: 'pending' },
+            { label: 'Pushing to GitHub...', status: 'pending' },
+            { label: 'Creating pull request...', status: 'pending' }
+        ]
+        setLoadingSteps(steps)
+
         try {
-            const res = await axios.post('/api/submission/submit', {
-                commit_message: commitMsg,
-                description: description
-            })
+            // Start the API call and step progression in parallel
+            const [apiResult] = await Promise.all([
+                axios.post('/api/submission/submit', {
+                    commit_message: commitMsg,
+                    description: description
+                }),
+                completeAllSteps(steps)
+            ])
+
             setMessage('Success! Your model has been submitted to AIP.')
             setCommitMsg('')
             setDescription('')
@@ -170,18 +330,17 @@ function App() {
             setMessage('Submission failed: ' + (err.response?.data?.detail || err.message))
         } finally {
             setLoading(false)
+            setLoadingSteps([])
         }
     }
 
     if (checkingSetup) {
-        return (
-            <div className="min-h-screen bg-background-dark flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary-default mx-auto mb-4"></div>
-                    <p className="text-light-grey text-body-large">Loading...</p>
-                </div>
-            </div>
-        )
+        const steps = [
+            { label: 'Connecting to backend...', status: 'completed' },
+            { label: 'Checking configuration...', status: 'processing' },
+            { label: 'Verifying setup status...', status: 'pending' }
+        ]
+        return <LoadingOverlay message="Initializing application..." steps={steps} />
     }
 
     if (!setupComplete) {
@@ -199,7 +358,7 @@ function App() {
                         <p className="text-body-large text-light-grey mt-1">Model Builder Workspace</p>
                     </div>
                     <div className="px-4 py-2 rounded-md bg-panel-dark border border-border-dark text-light-grey text-body-small font-mono">
-                        v1.0.0
+                        v{currentVersion}
                     </div>
                 </header>
 
@@ -209,7 +368,7 @@ function App() {
                             <div className="p-2 bg-primary-default rounded-full text-background-dark">
                                 <Upload size={20} />
                             </div>
-                            <div>
+                            <div className="flex-1">
                                 <h3 className="font-bold text-body-medium">Update Available: v{updateInfo?.latest_version}</h3>
                                 <p className="text-body-small text-light-grey">A new version of AIP Notebook is available.</p>
                             </div>
@@ -217,9 +376,8 @@ function App() {
                         <button
                             onClick={performUpdate}
                             disabled={loading}
-                            className="btn-primary"
-                        >
-                            Update Now
+                            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+                            {loading ? 'Updating...' : 'Update Now'}
                         </button>
                     </div>
                 )}
@@ -398,6 +556,8 @@ function App() {
                         onCancel={() => setIsModalOpen(false)}
                     />
                 )}
+
+                {loading && <LoadingOverlay message={message} steps={loadingSteps} />}
             </div>
         </div>
     )

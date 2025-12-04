@@ -250,32 +250,6 @@ $launcherContent = $launcherContent.Replace('WSLDESTTOREPLACE', $wslDest)
 
 Set-Content -Path $batPath -Value $launcherContent
 
-# Animated completion screen
-for ($i = 0; $i -lt 3; $i++) {
-    Clear-Host
-    Write-Host ""
-    Write-Host "  ################################################################" -ForegroundColor $colors[$i % 4]
-    Write-Host "  ##                                                            ##" -ForegroundColor $colors[($i + 1) % 4]
-    Write-Host "  ##     AAA    IIIII  PPPPPP                                   ##" -ForegroundColor $colors[($i + 2) % 4]
-    Write-Host "  ##    A   A     I    P     P                                  ##" -ForegroundColor $colors[($i + 1) % 4]
-    Write-Host "  ##   AAAAAAA    I    PPPPPP                                   ##" -ForegroundColor $colors[$i % 4]
-    Write-Host "  ##   A     A    I    P                                        ##" -ForegroundColor $colors[($i + 1) % 4]
-    Write-Host "  ##   A     A  IIIII  P                                        ##" -ForegroundColor $colors[($i + 2) % 4]
-    Write-Host "  ##                                                            ##" -ForegroundColor $colors[($i + 1) % 4]
-    Write-Host "  ##   N   N   OOO   TTTTT  EEEEE  BBBB    OOO    OOO   K   K   ##" -ForegroundColor $colors[$i % 4]
-    Write-Host "  ##   NN  N  O   O    T    E      B   B  O   O  O   O  K  K    ##" -ForegroundColor $colors[($i + 1) % 4]
-    Write-Host "  ##   N N N  O   O    T    EEEE   BBBB   O   O  O   O  KKK     ##" -ForegroundColor $colors[($i + 2) % 4]
-    Write-Host "  ##   N  NN  O   O    T    E      B   B  O   O  O   O  K  K    ##" -ForegroundColor $colors[($i + 1) % 4]
-    Write-Host "  ##   N   N   OOO     T    EEEEE  BBBB    OOO    OOO   K   K   ##" -ForegroundColor $colors[$i % 4]
-    Write-Host "  ##                                                            ##" -ForegroundColor $colors[($i + 1) % 4]
-    Write-Host "  ##          *** INSTALLATION COMPLETE! ***                    ##" -ForegroundColor White
-    Write-Host "  ##          Ready to Build AI Models                          ##" -ForegroundColor Gray
-    Write-Host "  ##                                                            ##" -ForegroundColor $colors[($i + 1) % 4]
-    Write-Host "  ################################################################" -ForegroundColor $colors[$i % 4]
-    Write-Host ""
-    Start-Sleep -Milliseconds 300
-}
-
 Write-Host ""
 Write-Host "  ################################################################" -ForegroundColor DarkGreen
 Write-Host "  ##                                                            ##" -ForegroundColor Green

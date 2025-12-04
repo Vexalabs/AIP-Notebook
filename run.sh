@@ -13,6 +13,12 @@ trap cleanup SIGINT
 
 echo "🚀 Starting ML Model Builder (WSL)..."
 
+# Pre-flight check: Ensure ports are free
+echo "Checking for existing processes..."
+fuser -k 8000/tcp 2>/dev/null || true
+fuser -k 3000/tcp 2>/dev/null || true
+
+
 # Check and setup backend
 echo "Checking Backend dependencies..."
 cd backend

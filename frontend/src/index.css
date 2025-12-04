@@ -45,3 +45,13 @@ body {
     @apply bg-panel-dark border border-border-dark rounded-lg p-3 w-full text-text-dark placeholder-light-grey focus:outline-none focus:ring-2 focus:ring-primary-default focus:border-transparent;
   }
 }
+
+@keyframes progress {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(-20%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-progress {
+  animation: progress 2s ease-in-out infinite;
+}

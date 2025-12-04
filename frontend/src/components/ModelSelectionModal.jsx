@@ -6,10 +6,33 @@ const ModelSelectionModal = ({ onSelect, onCancel }) => {
     const [models, setModels] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedModel, setSelectedModel] = useState(null);
+    const [currentStep, setCurrentStep] = useState(0);
+
+    const steps = [
+        { label: 'Connecting to registry...' },
+        { label: 'Authenticating request...' },
+        { label: 'Fetching sample models...' },
+        { label: 'Validating templates...' }
+    ];
 
     useEffect(() => {
         const fetchModels = async () => {
             try {
+                // Step 0: Connecting
+                setCurrentStep(0);
+                await new Promise(resolve => setTimeout(resolve, 600));
+
+                // Step 1: Authenticating
+                setCurrentStep(1);
+                await new Promise(resolve => setTimeout(resolve, 600));
+
+                // Step 2: Fetching
+                setCurrentStep(2);
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                // Step 3: Validating (happens during fetch)
+                setCurrentStep(3);
+
                 const res = await axios.get('/api/models/list-samples');
                 setModels(res.data);
                 if (res.data.length > 0) {
@@ -36,8 +59,27 @@ const ModelSelectionModal = ({ onSelect, onCancel }) => {
                 <h2 className="text-h6 font-semibold mb-6">Select a Sample Model</h2>
 
                 {loading ? (
-                    <div className="flex items-center justify-center h-48">
-                        <Loader className="animate-spin text-primary-default" size={48} />
+                    <div className="flex flex-col items-center justify-center h-48 space-y-4">
+                        <div className="w-full max-w-xs space-y-3">
+                            {steps.map((step, index) => (
+                                <div key={index} className="flex items-center gap-3">
+                                    {index < currentStep ? (
+                                        <Check className="text-success w-5 h-5" />
+                                    ) : index === currentStep ? (
+                                        <Loader className="text-primary-default w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <div className="w-5 h-5 rounded-full border-2 border-border-dark"></div>
+                                    )}
+
+                                    <span className={`text-body-small ${index < currentStep ? 'text-light-grey' :
+                                            index === currentStep ? 'text-text-dark font-medium' :
+                                                'text-border-dark'
+                                        }`}>
+                                        {step.label}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 ) : models.length > 0 ? (
                     <div className="space-y-4 mb-8">
@@ -46,8 +88,8 @@ const ModelSelectionModal = ({ onSelect, onCancel }) => {
                                 key={model.id}
                                 onClick={() => setSelectedModel(model.id)}
                                 className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedModel === model.id
-                                        ? 'border-primary-default bg-primary-default/10 ring-2 ring-primary-default'
-                                        : 'border-border-dark hover:bg-panel-dark/50'
+                                    ? 'border-primary-default bg-primary-default/10 ring-2 ring-primary-default'
+                                    : 'border-border-dark hover:bg-panel-dark/50'
                                     }`}
                             >
                                 <div className="flex items-center justify-between">

@@ -42,7 +42,11 @@ echo   [*] Starting backend and frontend in WSL...
 echo.
 
 REM Start the services in WSL
-start /B wsl -d Ubuntu bash -c "cd /opt/docker/4C_Predictions/model_builder_env && ./run.sh"
+REM Get current directory in WSL format
+for /f "delims=" %%i in ('wsl -d Ubuntu wslpath -u "%cd%"') do set WSL_DIR=%%i
+
+REM Start the services in WSL
+start /B wsl -d Ubuntu bash -c "cd \"%WSL_DIR%\" && ./run.sh"
 
 echo   [*] Initializing services...
 timeout /t 5 /nobreak > nul
