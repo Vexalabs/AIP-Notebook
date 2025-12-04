@@ -5,9 +5,27 @@
 @tailwind utilities;
 
 body {
-  background-color: #020617; /* background-dark */
-  color: #FFFFFF; /* text-dark */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed;
+  color: #FFFFFF;
   font-family: 'Inter', sans-serif;
+}
+
+/* Snowflake Animation */
+.snowflake {
+  position: fixed;
+  top: -10px;
+  color: white;
+  user-select: none;
+  z-index: 1000;
+  pointer-events: none;
+  animation: fall linear infinite;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh);
+  }
 }
 
 /* Custom Scrollbar */
@@ -16,33 +34,33 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #020617; /* background-dark */
+  background: rgba(0, 0, 0, 0.3);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155; /* border-dark */
+  background: rgba(255, 255, 255, 0.3);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569; /* A bit lighter than border-dark */
+  background: rgba(255, 255, 255, 0.5);
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-default text-text-light font-medium py-2 px-4 rounded-lg hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background-dark focus:ring-primary-default;
+    @apply bg-blue-500 text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-900 focus:ring-blue-400;
   }
-  
+
   .btn-secondary {
-    @apply bg-panel-dark text-text-dark font-medium py-2 px-4 rounded-lg hover:bg-border-dark transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background-dark focus:ring-light-grey;
+    @apply bg-purple-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-purple-900 focus:ring-purple-400;
   }
 
   .card {
-    @apply bg-panel-dark border border-border-dark rounded-2xl shadow-lg;
+    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg;
   }
 
   .input-field {
-    @apply bg-panel-dark border border-border-dark rounded-lg p-3 w-full text-text-dark placeholder-light-grey focus:outline-none focus:ring-2 focus:ring-primary-default focus:border-transparent;
+    @apply bg-white/10 backdrop-blur-sm border border-white/30 rounded-lg p-3 w-full text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:border-transparent;
   }
 }
 
