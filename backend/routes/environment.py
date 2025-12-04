@@ -25,6 +25,9 @@ async def start_environment(request: StartEnvRequest):
         launch_dir = workspace_dir
         
         if request.model_id and request.model_id != "default":
+            import time
+            start_time = time.time()
+            
             sample_models_dir = project_root / "sample_models"
             source_dir = sample_models_dir / request.model_id
             destination_dir = workspace_dir / request.model_id
@@ -33,10 +36,14 @@ async def start_environment(request: StartEnvRequest):
             if not source_dir.exists() or not source_dir.is_dir():
                 raise HTTPException(status_code=404, detail=f"Sample model '{request.model_id}' not found at '{source_dir}'.")
             
-            if destination_dir.exists():
-                shutil.rmtree(destination_dir)
-            
-            shutil.copytree(source_dir, destination_dir)
+            # Only copy if destination doesn't exist (much faster on subsequent starts)
+            if not destination_dir.exists():
+                print(f"Copying sample model '{request.model_id}' to workspace...")
+                shutil.copytree(source_dir, destination_dir)
+                elapsed = time.time() - start_time
+                print(f"Sample model copied in {elapsed:.2f} seconds")
+            else:
+                print(f"Sample model '{request.model_id}' already exists in workspace, skipping copy")
 
     except Exception as e:
         print(f"CRITICAL: Error copying sample model: {e}")
