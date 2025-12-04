@@ -7,23 +7,23 @@ export default {
   theme: {
     extend: {
       colors: {
-        'primary-default': '#FFFFFF',
-        'primary-hover': '#E5E7EB',
+        'primary-default': '#A3E635',
+        'primary-hover': '#84CC16',
         'success': '#22C55E',
         'warning': '#F97316',
-        'error': '#EF4444',
-        'info': '#3B82F6',
-        'background-dark': '#450A0A', // Red 950
+        'error': '#DC2626',
+        'info': '#2563EB',
+        'background-dark': '#020617',
         'background-light': '#FFFFFF',
-        'text-light': '#B91C1C', // Red 700
+        'text-light': '#334155',
         'text-dark': '#FFFFFF',
-        'light-grey': '#FECACA', // Red 200
-        'icon-blue': '#FFFFFF',
-        'icon-green': '#FFFFFF',
-        'icon-orange': '#FFFFFF',
-        'icon-purple': '#FFFFFF',
-        'panel-dark': '#7F1D1D', // Red 900
-        'border-dark': '#FECACA', // Red 200
+        'light-grey': '#94A3B8',
+        'icon-blue': '#2563EB',
+        'icon-green': '#22C55E',
+        'icon-orange': '#F97316',
+        'icon-purple': '#A3E635',
+        'panel-dark': '#0F172A',
+        'border-dark': '#334155',
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
