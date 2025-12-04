@@ -184,6 +184,20 @@ echo 'Setup Complete!'
 $setupScript = $setupScriptContent.Replace('WSLDESTTOREPLACE', $wslDest)
 $setupScript = $setupScript.Replace('WSLUSERTOREPLACE', $wslUser)
 
+# Convert to Unix line endings (LF only)
+$setupScript = $setupScript.Replace("`r`n", "`n")
+
+# Write and execute the setup script
+$setupScriptPath = "/tmp/mlbuilder_setup.sh"
+$setupScript | wsl -d Ubuntu -u root tee $setupScriptPath | Out-Null
+wsl -d Ubuntu -u root chmod +x $setupScriptPath
+Write-Info "Running setup script (this may take a few minutes)..."
+wsl -d Ubuntu -u root bash $setupScriptPath
+wsl -d Ubuntu -u root rm $setupScriptPath
+Write-Success "Dependencies installed successfully"
+Write-Host "   [OK] Environment Ready" -ForegroundColor Green
+Write-Host "   (^o^)" -ForegroundColor Green
+
 # 5. Create Desktop Shortcut
 Write-Info "[5/6] Creating desktop shortcut..."
 $desktopPath = [Environment]::GetFolderPath("Desktop")
