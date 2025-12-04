@@ -355,7 +355,34 @@ function App() {
 
     return (
         <div className="min-h-screen bg-background-dark text-text-dark p-8 font-sans">
+            {/* Christmas Snowflakes */}
+            <div className="fixed inset-0 pointer-events-none z-50">
+                {[...Array(50)].map((_, i) => (
+                    <div
+                        key={i}
+                        className="snowflake"
+                        style={{
+                            left: `${Math.random() * 100}vw`,
+                            animationDuration: `${Math.random() * 3 + 2}s`,
+                            animationDelay: `${Math.random() * 5}s`,
+                            opacity: Math.random(),
+                            fontSize: `${Math.random() * 20 + 10}px`
+                        }}
+                    >
+                        ❄
+                    </div>
+                ))}
+            </div>
+
             <div className="max-w-6xl mx-auto">
+                {/* Christmas Message */}
+                <div className="text-center mb-8 p-6 bg-gradient-to-r from-red-900/20 via-green-900/20 to-red-900/20 rounded-lg border border-primary-default/30">
+                    <h2 className="text-3xl font-bold text-primary-default drop-shadow-lg mb-2">
+                        🎄 Happy Christmas from AIP! 🎅
+                    </h2>
+                    <p className="text-light-grey">Wishing you a wonderful holiday season</p>
+                </div>
+
                 <header className="mb-12 border-b border-border-dark pb-6 flex items-center justify-between">
                     <div>
                         <h1 className="text-h4 tracking-[-1px] font-bold text-text-dark">
