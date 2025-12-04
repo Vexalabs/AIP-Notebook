@@ -569,7 +569,26 @@ function App() {
 
                 {loading && <LoadingOverlay message={message} steps={loadingSteps} />}
             </div>
-        </div >
+
+            {/* Christmas Snowflakes */}
+            <div className="fixed inset-0 pointer-events-none z-50">
+                {[...Array(50)].map((_, i) => (
+                    <div
+                        key={i}
+                        className="snowflake"
+                        style={{
+                            left: `${Math.random() * 100}vw`,
+                            animationDuration: `${Math.random() * 3 + 2}s`,
+                            animationDelay: `${Math.random() * 5}s`,
+                            opacity: Math.random(),
+                            fontSize: `${Math.random() * 20 + 10}px`
+                        }}
+                    >
+                        ❄
+                    </div>
+                ))}
+            </div>
+        </div>
     )
 }
 
