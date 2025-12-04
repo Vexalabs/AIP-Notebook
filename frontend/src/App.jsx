@@ -22,6 +22,7 @@ function App() {
     const [updateAvailable, setUpdateAvailable] = useState(false)
     const [updateInfo, setUpdateInfo] = useState(null)
     const [currentVersion, setCurrentVersion] = useState('...')
+    const [refreshing, setRefreshing] = useState(false)
 
     useEffect(() => {
         checkSetupStatus()
@@ -56,11 +57,14 @@ function App() {
     }
 
     const fetchHistory = async () => {
+        setRefreshing(true)
         try {
             const res = await axios.get('/api/history/submissions')
             setHistory(res.data)
         } catch (err) {
             console.error("Failed to fetch history", err)
+        } finally {
+            setTimeout(() => setRefreshing(false), 500)
         }
     }
 
@@ -349,37 +353,9 @@ function App() {
         return <SetupWizard onComplete={handleSetupComplete} />
     }
 
-    const Snowflakes = () => {
-        return (
-            <>
-                {[...Array(20)].map((_, i) => (
-                    <div
-                        key={i}
-                        className="snowflake"
-                        style={{
-                            left: `${Math.random() * 100}%`,
-                            animationDuration: `${5 + Math.random() * 10}s`,
-                            animationDelay: `${Math.random() * 5}s`,
-                            fontSize: `${0.5 + Math.random() * 1}em`,
-                        }}
-                    >
-                        ❄
-                    </div>
-                ))}
-            </>
-        );
-    };
-
     return (
-        <div className="min-h-screen bg-gradient-to-br from-red-950 via-red-900 to-red-950 text-text-dark p-8 font-sans">
-            <Snowflakes />
+        <div className="min-h-screen bg-background-dark text-text-dark p-8 font-sans">
             <div className="max-w-6xl mx-auto">
-                <div className="text-center mb-6">
-                    <h2 className="text-3xl font-bold text-white drop-shadow-lg">
-                        🎄 Happy Holidays! 🎅
-                    </h2>
-                    <p className="text-red-100 mt-2">Christmas Edition</p>
-                </div>
                 <header className="mb-12 border-b border-border-dark pb-6 flex items-center justify-between">
                     <div>
                         <h1 className="text-h4 tracking-[-1px] font-bold text-text-dark">
@@ -520,9 +496,13 @@ function App() {
                         </h2>
                         <button
                             onClick={fetchHistory}
-                            className="btn-secondary text-body-small"
+                            disabled={refreshing}
+                            className="btn-secondary text-body-small flex items-center gap-2 disabled:opacity-50"
                         >
-                            Refresh List
+                            {refreshing && (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            )}
+                            {refreshing ? 'Refreshing...' : 'Refresh List'}
                         </button>
                     </div>
 
