@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Play, Square, Upload, ExternalLink, BrainCircuit, Terminal, Clock } from 'lucide-react'
+import { Play, Square, Upload, ExternalLink, BrainCircuit, Terminal, Clock, AlertCircle } from 'lucide-react'
 import SetupWizard from './components/SetupWizard'
 import ModelSelectionModal from './components/ModelSelectionModal'
 import LoadingOverlay from './components/LoadingOverlay'
@@ -116,12 +116,27 @@ function App() {
         ]
         setLoadingSteps(steps)
 
+        // Helper to update step with delay
+        const updateStepWithDelay = async (stepIndex, delay = 800) => {
+            await new Promise(resolve => setTimeout(resolve, delay))
+            setLoadingSteps(prev => prev.map((step, idx) => ({
+                ...step,
+                status: idx < stepIndex ? 'completed' : idx === stepIndex ? 'processing' : 'pending'
+            })))
+        }
+
         try {
-            // Start the update
+            // Step 1: Validating (already processing)
+            await updateStepWithDelay(1, 600) // Move to backup after 600ms
+
+            // Step 2: Creating backup
+            await updateStepWithDelay(2, 800) // Move to download after 800ms
+
+            // Start the actual update
             await axios.post('/api/updates/perform')
 
-            // Simulate step progression while polling for status
-            let currentStep = 0
+            // Step 3: Downloading (this is where the real work starts)
+            let currentStep = 2
             let pollCount = 0
             const maxPolls = 60 // 2 minutes max
 
@@ -131,15 +146,17 @@ function App() {
                 try {
                     const status = await axios.get('/api/updates/status')
 
-                    // Update steps based on status message
-                    if (status.data.message.includes('backup')) {
-                        currentStep = Math.max(currentStep, 1)
-                    } else if (status.data.message.includes('download') || status.data.message.includes('Fetching')) {
-                        currentStep = Math.max(currentStep, 2)
+                    // Update steps based on status message with artificial delays
+                    if (status.data.message.includes('download') || status.data.message.includes('Fetching')) {
+                        if (currentStep < 3) {
+                            currentStep = 3
+                            await updateStepWithDelay(3, 1000) // Downloading takes a bit
+                        }
                     } else if (status.data.message.includes('Applying') || status.data.message.includes('update')) {
-                        currentStep = Math.max(currentStep, 3)
-                    } else if (status.data.message.includes('restart')) {
-                        currentStep = Math.max(currentStep, 4)
+                        if (currentStep < 4) {
+                            currentStep = 4
+                            await updateStepWithDelay(4, 800) // Applying changes
+                        }
                     }
 
                     // Update step statuses
@@ -165,11 +182,13 @@ function App() {
                 } catch (err) {
                     // Backend might be down during restart, this is expected
                     // Move to restart step
-                    currentStep = Math.max(currentStep, 4)
-                    setLoadingSteps(prev => prev.map((step, idx) => ({
-                        ...step,
-                        status: idx < currentStep ? 'completed' : idx === currentStep ? 'processing' : 'pending'
-                    })))
+                    if (currentStep < 4) {
+                        currentStep = 4
+                        setLoadingSteps(prev => prev.map((step, idx) => ({
+                            ...step,
+                            status: idx < currentStep ? 'completed' : idx === currentStep ? 'processing' : 'pending'
+                        })))
+                    }
                 }
 
                 // Timeout after max polls
@@ -409,9 +428,10 @@ function App() {
                                 <button
                                     onClick={() => setIsModalOpen(true)}
                                     disabled={loading}
-                                    className="btn-primary w-full py-3 text-body-medium disabled:opacity-50"
+                                    className={`btn-primary w-full py-4 text-body-large flex items-center justify-center gap-3 transition-all ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
-                                    <Play size={20} /> Start Environment
+                                    <Play size={24} />
+                                    <span>{loading ? 'Starting...' : 'Start Environment'}</span>
                                 </button>
                             ) : (
                                 <div className="space-y-4">
@@ -419,16 +439,18 @@ function App() {
                                         href={jupyterUrl}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="block w-full text-center py-3 bg-success hover:bg-success/80 text-text-dark rounded-lg font-semibold text-body-medium flex items-center justify-center gap-3 transition-colors"
+                                        className="block w-full text-center py-4 bg-success hover:bg-success/80 text-text-dark rounded-lg font-semibold text-body-large flex items-center justify-center gap-3 transition-colors"
                                     >
-                                        <ExternalLink size={20} /> Open Jupyter Notebook
+                                        <ExternalLink size={24} />
+                                        <span>Open Jupyter Notebook</span>
                                     </a>
                                     <button
                                         onClick={stopEnv}
                                         disabled={loading}
-                                        className="w-full py-3 bg-error/10 hover:bg-error/20 text-error rounded-lg font-medium flex items-center justify-center gap-3 transition-colors disabled:opacity-50"
+                                        className="w-full py-4 bg-error/10 hover:bg-error/20 text-error rounded-lg font-medium text-body-large flex items-center justify-center gap-3 transition-colors disabled:opacity-50"
                                     >
-                                        <Square size={20} /> Stop Environment
+                                        <Square size={24} />
+                                        <span>Stop Environment</span>
                                     </button>
                                 </div>
                             )}
@@ -527,33 +549,54 @@ function App() {
                                         </td>
                                     </tr>
                                 ) : (
-                                    history.map((item) => (
-                                        <tr key={item.id} className="hover:bg-panel-dark/50 transition-colors">
-                                            <td className="px-6 py-4 text-body-medium text-text-dark">
-                                                {item.title}
-                                            </td>
-                                            <td className="px-6 py-4 text-body-small text-light-grey">
-                                                {new Date(item.created_at).toLocaleString()}
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-body-xsmall font-medium ${item.state === 'open'
-                                                    ? 'bg-success/10 text-success'
-                                                    : 'bg-icon-purple/10 text-icon-purple'
-                                                    }`}>
-                                                    {item.state === 'open' ? 'Submitted' : 'Processed'}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <button
-                                                    onClick={() => restoreSubmission(item)}
-                                                    disabled={loading}
-                                                    className="btn-secondary text-body-small disabled:opacity-50"
-                                                >
-                                                    Restore
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
+                                    history.map((item) => {
+                                        // Check if submission is older than 2 months
+                                        const submissionDate = new Date(item.created_at)
+                                        const twoMonthsAgo = new Date()
+                                        twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2)
+                                        const needsRetraining = submissionDate < twoMonthsAgo
+
+                                        return (
+                                            <tr key={item.id} className="hover:bg-panel-dark/50 transition-colors">
+                                                <td className="px-6 py-4 text-body-medium text-text-dark">
+                                                    <div className="flex items-center gap-2">
+                                                        {item.title}
+                                                        {needsRetraining && (
+                                                            <div className="group relative">
+                                                                <AlertCircle className="w-4 h-4 text-warning" />
+                                                                <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-10">
+                                                                    <div className="bg-panel-dark border border-border-dark rounded px-3 py-2 text-body-small text-light-grey whitespace-nowrap shadow-lg">
+                                                                        Retraining Required
+                                                                        <div className="absolute top-full left-4 -mt-1 border-4 border-transparent border-t-border-dark"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-body-small text-light-grey">
+                                                    {new Date(item.created_at).toLocaleString()}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-body-xsmall font-medium ${item.state === 'open'
+                                                        ? 'bg-success/10 text-success'
+                                                        : 'bg-icon-purple/10 text-icon-purple'
+                                                        }`}>
+                                                        {item.state === 'open' ? 'Submitted' : 'Processed'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <button
+                                                        onClick={() => restoreSubmission(item)}
+                                                        disabled={loading}
+                                                        className="btn-secondary text-body-small disabled:opacity-50"
+                                                    >
+                                                        Restore
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        )
+                                    })
                                 )}
                             </tbody>
                         </table>

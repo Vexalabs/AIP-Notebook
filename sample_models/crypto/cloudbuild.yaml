@@ -1,0 +1,145 @@
+# cloudbuild.yaml
+# -----------------------------------------------------------------------------
+# Continuous Integration (CI) and Continuous Deployment (CD) Pipeline
+# Triggers:
+# 1. CI (Pull Request): Runs Steps 1-5. _DEPLOY_STAGE=false (default).
+# 2. CD (Merge to main): Runs Steps 1-6. _DEPLOY_STAGE=true (set in trigger).
+# -----------------------------------------------------------------------------
+steps:
+
+# --- PHASE 1: SETUP & ANALYSIS ---
+
+# 1. Determine Category, Generate Unique ID (UID), and Define Target Service
+- name: 'bash'
+  id: 'generate-model-uid'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      # Install jq if not present (often needed for JSON parsing)
+      apt-get update && apt-get install -y jq
+      
+      # Determine Category from the model config file (assuming 'new_pr/model_config.json')
+      MODEL_CATEGORY=$(cat new_pr/model_config.json | jq -r .category)
+      
+      # Generate a unique tag (e.g., soccer-8d2a3f4-1733659278)
+      TIMESTAMP=$(date +%s)
+      MODEL_UID="${MODEL_CATEGORY}-${SHORT_SHA}-${TIMESTAMP}"
+      TARGET_SERVICE="${MODEL_CATEGORY}-api"
+
+      echo "Determined Category: $MODEL_CATEGORY"
+      echo "Generated Unique ID (UID): $MODEL_UID"
+      echo "Target Cloud Run Service: $TARGET_SERVICE"
+      
+      # Export variables for subsequent steps via a temporary file
+      echo "MODEL_CATEGORY=$MODEL_CATEGORY" > /workspace/vars.env
+      echo "MODEL_UID=$MODEL_UID" >> /workspace/vars.env
+      echo "TARGET_SERVICE=$TARGET_SERVICE" >> /workspace/vars.env
+      
+  env: ['HOME=/root']
+  
+# 2. Run Python Security Checks (Bandit)
+- name: 'python:3.10'
+  id: 'python-security-scan'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      pip install bandit
+      
+      # Run Bandit scan on the new code folder, suppress exit code for reporting
+      bandit -r new_pr/ -f json -o bandit_report.json || true
+      
+      # Fail the build if any high-severity issues are found
+      HIGH_SEVERITY_COUNT=$(cat bandit_report.json | jq '.metrics._totals.SEVERITY.HIGH')
+      if [ "$HIGH_SEVERITY_COUNT" -gt "0" ]; then
+        echo "🚨 SECURITY FAIL: High severity issues found in new code!"
+        cat bandit_report.json
+        exit 1
+      fi
+  waitFor: ['generate-model-uid']
+
+# 3. Run Category-Specific Tests
+- name: 'python:3.10'
+  id: 'run-category-tests'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      # Load variables and install pytest
+      source /workspace/vars.env
+      pip install pytest
+      
+      echo "Running tests for $MODEL_CATEGORY model..."
+
+      # Conditional execution of category-specific tests
+      if [ "$MODEL_CATEGORY" == "soccer" ]; then
+        pytest tests/integration/soccer_tests/
+      elif [ "$MODEL_CATEGORY" == "crypto" ]; then
+        pytest tests/integration/crypto_tests/
+      else
+        echo "Error: Unknown model category '$MODEL_CATEGORY'. Failing CI."
+        exit 1
+      fi
+  waitFor: ['python-security-scan']
+
+# --- PHASE 2: BUILD & PUSH ---
+
+# 4. Build the Docker Image, tagging it with the unique UID
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'build-image'
+  entrypoint: 'bash'
+  args: [
+    '-c', 
+    'source /workspace/vars.env; docker build -t ${_AR_REPO_PATH}/${_REPO_NAME}/$TARGET_SERVICE:$MODEL_UID . --build-arg MODEL_FOLDER=new_pr'
+  ]
+  waitFor: ['run-category-tests']
+  
+# 5. Push the Image to Artifact Registry
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'push-image'
+  entrypoint: 'bash'
+  args: [
+    '-c', 
+    'source /workspace/vars.env; docker push ${_AR_REPO_PATH}/${_REPO_NAME}/$TARGET_SERVICE:$MODEL_UID'
+  ]
+  
+# --- PHASE 3: CONDITIONAL DEPLOYMENT (CD) ---
+
+# 6. Deploy to the Correct Cloud Run Service (Only runs on CD trigger)
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'deploy-cloud-run'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      # Skip this step if the substitution variable is not 'true' (CI check)
+      if [ "$$_DEPLOY_STAGE" != "true" ]; then
+        echo "Skipping deployment step. This is a CI/PR validation build."
+        exit 0
+      fi
+      
+      source /workspace/vars.env
+      IMAGE_URL="${_AR_REPO_PATH}/${_REPO_NAME}/$TARGET_SERVICE:$MODEL_UID"
+      
+      echo "🚀 Deploying image $IMAGE_URL to Cloud Run service $TARGET_SERVICE"
+
+      gcloud run deploy "$TARGET_SERVICE" \
+        --image="$IMAGE_URL" \
+        --region="${_REGION}" \
+        --platform="managed" \
+        --no-allow-unauthenticated \
+        --revision-suffix="$MODEL_UID" \
+        --service-account="kubernetes-job-sa@newsgpt-380108.iam.gserviceaccount.com"
+        
+  waitFor: ['push-image']
+
+# --- SUBSTITUTION VARIABLES ---
+# These values are set when configuring the Cloud Build Triggers in the GCP console.
+substitutions:
+  _REGION: 'us-central1'
+  _PROJECT_ID: 'newsgpt-380108'
+  _AR_REPO_PATH: 'us-central1-docker.pkg.dev/${_PROJECT_ID}'
+  _REPO_NAME: 'model-builder-models'
+  # This variable must be OVERRIDDEN to 'true' in the CD trigger configuration.
+  _DEPLOY_STAGE: 'false'

@@ -123,8 +123,6 @@ set "SCRIPT_DIR=%~dp0"
 
 REM Run the PowerShell installer from the AIP-Model-Builder subdirectory
 PowerShell -ExecutionPolicy Bypass -File "%SCRIPT_DIR%AIP-Model-Builder\install.ps1"
-
-pause
 EOF
 
 # Create Mac installer wrapper at ROOT level

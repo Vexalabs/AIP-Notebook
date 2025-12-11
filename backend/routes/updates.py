@@ -31,10 +31,10 @@ def get_latest_version() -> dict:
     app_dir = Path(__file__).parent.parent.parent
     cache_file = app_dir / ".update_cache"
     
-    # Check cache (24 hour TTL)
+    # Check cache (5 minute TTL)
     if cache_file.exists():
         cache_age = time.time() - cache_file.stat().st_mtime
-        if cache_age < 86400:  # 24 hours
+        if cache_age < 300:  # 5 minutes
             try:
                 return json.loads(cache_file.read_text())
             except:

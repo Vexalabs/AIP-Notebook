@@ -72,8 +72,8 @@ const ModelSelectionModal = ({ onSelect, onCancel }) => {
                                     )}
 
                                     <span className={`text-body-small ${index < currentStep ? 'text-light-grey' :
-                                            index === currentStep ? 'text-text-dark font-medium' :
-                                                'text-border-dark'
+                                        index === currentStep ? 'text-text-dark font-medium' :
+                                            'text-border-dark'
                                         }`}>
                                         {step.label}
                                     </span>
@@ -118,8 +118,12 @@ const ModelSelectionModal = ({ onSelect, onCancel }) => {
                     <button onClick={onCancel} className="btn-secondary">
                         Cancel
                     </button>
-                    <button onClick={handleSelect} disabled={!selectedModel || loading} className="btn-primary">
-                        Start Environment
+                    <button
+                        onClick={handleSelect}
+                        disabled={!selectedModel || loading}
+                        className={`btn-primary transition-all ${(!selectedModel || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {loading ? 'Loading Models...' : 'Start Environment'}
                     </button>
                 </div>
             </div>

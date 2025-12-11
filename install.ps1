@@ -264,6 +264,31 @@ $launcherContent = $launcherContent.Replace('WSLDESTTOREPLACE', $wslDest)
 
 Set-Content -Path $batPath -Value $launcherContent
 
+# Copy icon to Windows AppData for shortcut
+$iconDir = Join-Path $env:APPDATA "AIP-Notebook"
+if (-not (Test-Path $iconDir)) {
+    New-Item -ItemType Directory -Path $iconDir | Out-Null
+}
+$iconPath = Join-Path $iconDir "favicon.ico"
+
+# Copy icon from WSL to Windows
+$wslIconPath = "$wslNetworkPath\frontend\public\favicon.ico"
+if (Test-Path $wslIconPath) {
+    Copy-Item -Path $wslIconPath -Destination $iconPath -Force
+    Write-Info "Icon copied to Windows"
+}
+
+# Create Shortcut with Icon
+$shortcutPath = Join-Path $desktopPath "AIP-Notebook.lnk"
+$wShell = New-Object -ComObject WScript.Shell
+$shortcut = $wShell.CreateShortcut($shortcutPath)
+$shortcut.TargetPath = $batPath
+if (Test-Path $iconPath) {
+    $shortcut.IconLocation = $iconPath
+}
+$shortcut.Save()
+Write-Success "Desktop shortcut created"
+
 Write-Host ""
 Write-Host "  ################################################################" -ForegroundColor DarkGreen
 Write-Host "  ##                                                            ##" -ForegroundColor Green
@@ -284,7 +309,7 @@ Write-Host "  ##          Ready to Build AI Models                          ##" 
 Write-Host "  ##                                                            ##" -ForegroundColor Green
 Write-Host "  ################################################################" -ForegroundColor Green
 Write-Host ""
-Write-Success "Double-click 'AIP-Notebook.bat' on your Desktop to start!"
+Write-Success "Double-click 'AIP-Notebook' on your Desktop to start!"
 Write-Host ""
 
 Read-Host "Press Enter to exit"
